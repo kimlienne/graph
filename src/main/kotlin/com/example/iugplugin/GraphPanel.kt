@@ -121,10 +121,34 @@ class GraphPanel : JPanel() {
     }
 
     private fun removeNode(node: Node) {
+        val parent = node.parent
+        val children = node.children.toList() // copy tránh concurrent modification
+        // Nếu node cha tồn tại, nối các con với node cha
+        if (parent != null) {
+            for (child in children) {
+                // Loại node khỏi danh sách con của node bị xóa
+                node.children.remove(child)
+                // Cập nhật parent mới cho child
+                child.parent = parent
+                // Thêm child vào danh sách con của parent nếu chưa có
+                if (!parent.children.contains(child)) {
+                    parent.children.add(child)
+                }
+                // Thêm edge mới nếu chưa tồn tại
+                if (listEdge.listEdge.none { it.from == parent && it.to == child }) {
+                    addEdge(parent, child)
+                }
+            }
+        } else {
+            // Nếu không có node cha, các con sẽ không có parent
+            for (child in children) {
+                node.children.remove(child)
+                child.parent = null
+            }
+        }
         node.parent?.children?.remove(node)
         listEdge.listEdge.removeAll { it.from == node || it.to == node }
         listNode.listNode.remove(node)
-
         recalculateTreeLevels()
     }
 

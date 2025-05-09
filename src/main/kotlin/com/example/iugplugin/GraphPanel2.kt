@@ -11,6 +11,9 @@ import java.awt.event.MouseEvent
 import java.awt.geom.QuadCurve2D
 import kotlin.math.abs
 import kotlin.math.pow
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 
 class GraphPanel2 : JPanel() {
     private var selectedNode: Node? = null
@@ -90,7 +93,7 @@ class GraphPanel2 : JPanel() {
 
     private fun removeEdge(edge: Edge) {
         edge.from.children.remove(edge.to)
-        edge.to.children1.remove(edge.from)
+        edge.to.children.remove(edge.from)
         listEdge.listEdge.remove(edge)
     }
 
@@ -120,10 +123,40 @@ class GraphPanel2 : JPanel() {
     }
 
     private fun removeNode(node: Node) {
+        val parent = node.parent
+        val children = node.children.toList() // copy tránh concurrent modification
+        // Nếu node cha tồn tại, nối các con với node cha
+        if (parent != null) {
+            for (child in children) {
+                node.children.remove(child)
+                child.parent = parent
+                if (!parent.children.contains(child)) {
+                    parent.children.add(child)
+                }
+                if (listEdge.listEdge.none { it.from == parent && it.to == child }) {
+                    addEdge(parent, child)
+                }
+                // Cập nhật children cho child và parent nếu cần
+                child.children.remove(node)
+                if (!child.children.contains(parent)) {
+                    child.children.add(parent)
+                }
+                if (!parent.children.contains(child)) {
+                    parent.children.add(child)
+                }
+            }
+        } else {
+            for (child in children) {
+                node.children.remove(child)
+                child.parent = null
+                child.children.remove(node)
+            }
+        }
         node.parent?.children?.remove(node)
-        node.children1.remove(node.parent)
+        node.children.remove(node.parent)
         listEdge.listEdge.removeAll { it.from == node || it.to == node }
         listNode.listNode.remove(node)
+        printNodeConnections()
     }
 
     private fun showAddConnectionDialog(fromNode: Node) {
@@ -138,12 +171,17 @@ class GraphPanel2 : JPanel() {
             val toNode = listNode.listNode.find { it.id == selectedNodeId }
 
             if (toNode != null) {
-                fromNode.children.add(toNode)
-                toNode.children1.add(fromNode)
-                addEdge(fromNode, toNode)
-                recalculateTreeLevels()
-                layoutNodes()
-                repaint()
+                // Chỉ thêm cạnh nếu chưa tồn tại
+                if (!fromNode.children.contains(toNode)) {
+                    fromNode.children.add(toNode)
+                    addEdge(fromNode, toNode)
+                    recalculateTreeLevels()
+                    layoutNodes()
+                    repaint()
+                    printNodeConnections()
+                } else {
+                    JOptionPane.showMessageDialog(this, "Connection already exists!", "Warning", JOptionPane.WARNING_MESSAGE)
+                }
             }
         }
     }
@@ -153,7 +191,7 @@ class GraphPanel2 : JPanel() {
 
         if (parent != null) {
             parent.children.add(node)
-            node.children1.add(parent)
+            node.children.add(parent)
             addEdge(parent, node)
         }
 
@@ -161,6 +199,7 @@ class GraphPanel2 : JPanel() {
         recalculateTreeLevels()
         layoutNodes()
         repaint()
+        printNodeConnections()
     }
 
     fun addEdge(from: Node, to: Node) {
@@ -326,4 +365,21 @@ class GraphPanel2 : JPanel() {
         }
     }
 
+    fun printNodeConnections() {
+        println("Node connections:")
+        for (node in listNode.listNode) {
+            val childIds = node.children.map { it.id }
+            println("Node ${node.id} -> Children: $childIds")
+        }
+    }
+
+    fun showLogInSandbox(message: String) {
+        val notification = Notification(
+            "GraphPlugin",
+            "Graph Log",
+            message,
+            NotificationType.INFORMATION
+        )
+        Notifications.Bus.notify(notification)
+    }
 }

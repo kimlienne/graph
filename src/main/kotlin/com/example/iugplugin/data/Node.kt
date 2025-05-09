@@ -5,7 +5,6 @@ class Node (
     var x: Int = 0,
     var y: Int = 0,
     val children: MutableList<Node> = mutableListOf(),
-    val children1: MutableList<Node> = mutableListOf(),
     var level: Int = 0,
     var point: Int = 0,
     var parent: Node? = null
