@@ -169,6 +169,19 @@ class GraphPanel2 : JPanel() {
             val toNode = listNode.listNode.find { it.id == selectedNodeId }
 
             if (toNode != null) {
+                // Nếu toNode là node đơn đứng 1 mình (level == -1) và fromNode thuộc graph
+                println("toNode.level")
+                println(toNode.level)
+                println("fromNode.level")
+                println(fromNode.level)
+                if (toNode.level != -1 && fromNode.level == -1) {
+                    toNode.children.add(fromNode)
+                    addEdge(toNode, fromNode)
+                    recalculateTreeLevels()
+                    layoutNodes()
+                    repaint()
+                    printNodeConnections()
+                }else{
                 // Chỉ thêm cạnh nếu chưa tồn tại
                 if (!fromNode.children.contains(toNode)) {
                     fromNode.children.add(toNode)
@@ -180,7 +193,7 @@ class GraphPanel2 : JPanel() {
                 } else {
                     JOptionPane.showMessageDialog(this, "Connection already exists!", "Warning", JOptionPane.WARNING_MESSAGE)
                 }
-            }
+            }}
         }
     }
 

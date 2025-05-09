@@ -1,6 +1,6 @@
 package com.example.iugplugin.data
 
-class Node (
+class Node(
     val id: String,
     var x: Int = 0,
     var y: Int = 0,
@@ -8,7 +8,11 @@ class Node (
     var level: Int = 0,
     var point: Int = 0,
     var parent: Node? = null
-)
+) {
+    override fun toString(): String {
+        return id
+    }
+}
 
 class Edge (
     val from: Node,
