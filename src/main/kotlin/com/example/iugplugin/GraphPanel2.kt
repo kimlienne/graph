@@ -138,9 +138,7 @@ class GraphPanel2 : JPanel() {
                 }
                 // Cập nhật children cho child và parent nếu cần
                 child.children.remove(node)
-                if (!child.children.contains(parent)) {
-                    child.children.add(parent)
-                }
+
                 if (!parent.children.contains(child)) {
                     parent.children.add(child)
                 }
@@ -191,7 +189,7 @@ class GraphPanel2 : JPanel() {
 
         if (parent != null) {
             parent.children.add(node)
-            node.children.add(parent)
+//            node.children.add(parent)
             addEdge(parent, node)
         }
 
